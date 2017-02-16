@@ -1,22 +1,36 @@
 defmodule Lsr do
-  def main([]), do: ls_r
-  def main([path | _]), do: path |> ls_r
+  def main(args) do
+    {opts, argv, _} = OptionParser.parse(args,
+      aliases: [a: :all],
+      switches: [all: :boolean])
+    path =
+      case argv do
+        [] -> "."
+        [path | _] -> path
+      end
+    opts = Keyword.merge(default_opts, opts)
+    ls_r(path, opts)
+  end
 
-  def ls_r(path \\ ".", depth \\ 0, end? \\ true, lead \\ "") do
-    lead = lead <>
+  defp default_opts, do: [depth: 0, end?: true, lead: "", all: false]
+
+  defp ls_r(path, opts) do
+    lead = opts[:lead] <>
       cond do
-        depth == 0 -> IO.puts lead <> Path.basename(path); ""
-        end? -> IO.puts lead <> "└── " <> Path.basename(path); "    "
-        true -> IO.puts lead <> "├── " <> Path.basename(path); "│   "
+        opts[:depth] == 0 -> IO.puts opts[:lead] <> Path.basename(path); ""
+        opts[:end?] -> IO.puts opts[:lead] <> "└── " <> Path.basename(path); "    "
+        true -> IO.puts opts[:lead] <> "├── " <> Path.basename(path); "│   "
       end
     case File.stat!(path) do
       %{type: :directory} ->
         File.ls!(path)
+        |> Enum.filter(&(opts[:all] || !(Path.basename(&1) |> String.starts_with?("."))))
         |> Enum.reverse
         |> Enum.with_index
         |> Enum.reverse
         |> Enum.map(fn {subpath, c} ->
-          Path.join(path, subpath) |> ls_r(depth + 1, c == 0, lead)
+          opts = Keyword.merge(opts, depth: opts[:depth] + 1, end?: c == 0, lead: lead)
+          Path.join(path, subpath) |> ls_r(opts)
         end)
       _ ->
         :ok
