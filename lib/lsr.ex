@@ -1,8 +1,20 @@
 defmodule Lsr do
   def main(args) do
     {opts, argv, _} = OptionParser.parse(args,
-      aliases: [a: :all],
-      switches: [all: :boolean])
+      aliases: [a: :all, i: :ignore, h: :help],
+      switches: [all: :boolean, ignore: :keep])
+
+    if opts[:help] do
+      IO.puts """
+      Usage: lsr [-h] [-a] [-i <ignore>]
+
+        -h --help    Display this help message
+        -a --all     Display all files, including hidden ones
+        -i --ignore  Ignore the specified file(s)
+      """
+      exit :normal
+    end
+
     path =
       case argv do
         [] -> "."
@@ -24,7 +36,10 @@ defmodule Lsr do
     case File.stat!(path) do
       %{type: :directory} ->
         File.ls!(path)
-        |> Enum.filter(&(opts[:all] || !(Path.basename(&1) |> String.starts_with?("."))))
+        |> Enum.filter(fn path ->
+          (opts[:all] || !(Path.basename(path) |> String.starts_with?(".")))
+          && !(Path.basename(path) in Keyword.get_values(opts, :ignore))
+        end)
         |> Enum.reverse
         |> Enum.with_index
         |> Enum.reverse
