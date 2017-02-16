@@ -6,6 +6,4 @@ defmodule Lsr.Mixfile do
      version: "0.1.0",
      escript: [main_module: Lsr]]
   end
-
-  def application, do: [applications: []]
 end
