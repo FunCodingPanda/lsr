@@ -1,4 +1,5 @@
 defmodule Lsr do
+  @doc false
   def main(args) do
     {opts, argv, _} = OptionParser.parse(args,
       aliases: [a: :all, i: :ignore, h: :help],
