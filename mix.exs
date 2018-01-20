@@ -3,7 +3,7 @@ defmodule Lsr.Mixfile do
 
   def project do
     [app: :lsr,
-     version: "0.1.0",
+     version: "0.1.1",
      escript: [main_module: Lsr]]
   end
 end
